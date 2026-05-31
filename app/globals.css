@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-.invertImg{
-    filter: invert(0.23)
+.invertImg {
+  filter: invert(1);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.momo-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
 }

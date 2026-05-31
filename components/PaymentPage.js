@@ -2,7 +2,12 @@
 import React, { useEffect, useState } from "react";
 import Script from "next/script";
 import { useSession } from "next-auth/react";
-import { fetchuser, fetchpayments, initiate } from "@/actions/useractions";
+import {
+  fetchuser,
+  fetchpayments,
+  initiate,
+  initiateEsewa,
+} from "@/actions/useractions";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -20,6 +25,7 @@ const PaymentPage = ({ username }) => {
   });
   const [currentUser, setcurrentUser] = useState({});
   const [payments, setPayments] = useState([]);
+  const [esewaLoading, setEsewaLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -86,6 +92,54 @@ const PaymentPage = ({ username }) => {
     rzp1.open();
   };
 
+  const payWithEsewa = async (amount) => {
+    if (!paymentform.name || !paymentform.message || !paymentform.amount) {
+      return;
+    }
+
+    setEsewaLoading(true);
+
+    try {
+      const res = await initiateEsewa(amount, username, paymentform);
+
+      if (!res || res.error) {
+        toast.error(res?.error || "Could not start eSewa payment", {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "dark",
+          transition: Bounce,
+        });
+        setEsewaLoading(false);
+        return;
+      }
+
+      // eSewa v2 requires a POST form submission (not a redirect). We build a
+      // hidden form, append every signed field, and submit it programmatically.
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = res.esewaUrl;
+
+      Object.entries(res.fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      toast.error("Something went wrong connecting to eSewa", {
+        position: "top-right",
+        autoClose: 4000,
+        theme: "dark",
+        transition: Bounce,
+      });
+      setEsewaLoading(false);
+    }
+  };
+
   return (
     <>
       <ToastContainer
@@ -104,116 +158,177 @@ const PaymentPage = ({ username }) => {
       <ToastContainer />
       <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
 
-      <div className="cover w-full bg-red-50 relative">
+      {esewaLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+          <div className="size-14 border-4 border-[#60bb46] border-t-transparent rounded-full animate-spin"></div>
+          <div className="mt-6 text-white font-semibold text-lg">
+            Connecting to eSewa...
+          </div>
+          <div className="mt-1 text-slate-400 text-sm">
+            Please don&apos;t close this tab
+          </div>
+        </div>
+      )}
+
+      <div className="cover w-full relative">
         <img
-          className="object-cover w-full h-48 md:h-[350px] shadow-blue-700 shadow-sm"
+          className="object-cover w-full h-48 md:h-[400px]"
           src={currentUser.coverpic}
-          alt=""
+          alt="cover"
         />
-        <div className="absolute -bottom-20 right-[33%] md:right-[46%] border-white overflow-hidden border-2 rounded-full size-36">
+        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-24 md:translate-x-0 border-4 border-gray-900 overflow-hidden rounded-full size-32 md:size-48 shadow-2xl">
           <img
-            className="rounded-full object-cover size-36"
-            width={128}
-            height={128}
+            className="rounded-full object-cover size-full"
             src={currentUser.profilepic}
-            alt=""
+            alt="profile"
           />
         </div>
       </div>
-      <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2">
-        <div className="font-bold text-lg">@{username}</div>
-        <div className="text-slate-400">Lets help {username} get a momo!</div>
-        <div className="text-slate-400">
-          {payments.length} Payments . Rs.
-          {payments.reduce((a, b) => a + b.amount, 0)} raised
+
+      <div className="info flex justify-center items-center md:items-start md:px-24 mt-20 md:mt-10 flex-col gap-1">
+        <div className="font-bold text-3xl md:text-4xl text-white">
+          {currentUser.name}
+        </div>
+        <div className="text-indigo-400 font-medium text-lg">@{username}</div>
+        <div className="text-slate-400 mt-2 max-w-md text-center md:text-left">
+          Helping {currentUser.name} reach their creative goals, one momo at a
+          time!
+        </div>
+        <div className="flex gap-4 mt-4 text-sm font-semibold tracking-wide uppercase text-slate-500">
+          <span>{payments.length} support events</span>
+          <span className="text-indigo-500">•</span>
+          <span>Rs. {payments.reduce((a, b) => a + b.amount, 0)} raised</span>
         </div>
 
-        <div className="payment flex gap-3 w-[80%] mt-11 flex-col md:flex-row">
-          <div className="supporters w-full md:w-1/2 bg-slate-900 rounded-lg text-white px-2 md:p-10">
-            {/* Show list of all the supporters as a leaderboard  */}
-            <h2 className="text-2xl font-bold my-5"> Top 10 Supporters</h2>
-            <ul className="mx-5 text-lg">
-              {payments.length == 0 && <li>No payments yet</li>}
-              {payments.map((p, i) => {
-                return (
-                  <li key={i} className="my-4 flex gap-2 items-center">
-                    <img width={33} src="avatar.gif" alt="user avatar" />
-                    <span>
-                      {p.name} donated{" "}
-                      <span className="font-bold">Rs.{p.amount}</span> with a
-                      message &quot;{p.message}&quot;
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+        <div className="payment flex gap-8 w-full mt-12 flex-col lg:flex-row mb-20">
+          <div className="supporters w-full lg:w-1/2 glass p-6 md:p-10 rounded-3xl">
+            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+              <span className="bg-indigo-500/20 p-2 rounded-xl text-indigo-400">
+                🏆
+              </span>
+              Recent Supporters
+            </h2>
+            <div className="space-y-6">
+              {payments.length === 0 && (
+                <div className="text-slate-500 italic py-10 text-center">
+                  No momos bought yet. Be the first!
+                </div>
+              )}
+              {payments.map((p, i) => (
+                <div
+                  key={i}
+                  className="flex gap-4 items-start p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-indigo-500/30 transition-colors"
+                >
+                  <div className="bg-indigo-500/10 p-2 rounded-full mt-1">
+                    <img
+                      className="w-6 h-6 invert"
+                      src="/avatar.gif"
+                      alt="avatar"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white text-lg">
+                        {p.name}
+                      </span>
+                      <span className="text-sm px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold tracking-tight">
+                        Rs. {p.amount}
+                      </span>
+                    </div>
+                    <p className="text-slate-400 mt-1 leading-relaxed text-sm">
+                      &quot;{p.message}&quot;
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="makePayment w-full md:w-1/2 bg-slate-900 rounded-lg text-white px-2 md:p-10">
-            <h2 className="text-2xl font-bold my-5">Make a Payment</h2>
-            <div className="flex gap-2 flex-col">
-              {/* input for name and message   */}
-              <div>
-                <input
-                  onChange={handleChange}
-                  value={paymentform.name}
-                  name="name"
-                  type="text"
-                  className="w-full p-3 rounded-lg bg-slate-800"
-                  placeholder="Enter Name"
-                />
-              </div>
+          <div className="makePayment w-full lg:w-1/2 glass p-6 md:p-10 rounded-3xl border-2 border-indigo-500/20 shadow-[0_0_50px_-12px_rgba(99,102,241,0.2)]">
+            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+              <span className="bg-purple-500/20 p-2 rounded-xl text-purple-400">
+                🍜
+              </span>
+              Support @{username}
+            </h2>
+            <div className="space-y-4">
+              <input
+                onChange={handleChange}
+                value={paymentform.name}
+                name="name"
+                className="w-full p-4 rounded-xl bg-white/5 border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                placeholder="Your Name (e.g., Ram)"
+              />
               <input
                 onChange={handleChange}
                 value={paymentform.message}
                 name="message"
-                type="text"
-                className="w-full p-3 rounded-lg bg-slate-800"
-                placeholder="Enter Message"
+                className="w-full p-4 rounded-xl bg-white/5 border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                placeholder="Support Message... (e.g., Keep up the good work!)"
               />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">
+                  Rs.
+                </span>
+                <input
+                  onChange={handleChange}
+                  value={paymentform.amount}
+                  name="amount"
+                  className="w-full p-4 pl-12 rounded-xl bg-white/5 border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all font-bold text-xl"
+                  placeholder="0"
+                />
+              </div>
 
-              <input
-                onChange={handleChange}
-                value={paymentform.amount}
-                name="amount"
-                type="text"
-                className="w-full p-3 rounded-lg bg-slate-800"
-                placeholder="Enter Amount"
-              />
+              {/* Amount Presets */}
+              <div className="grid grid-cols-3 gap-3">
+                {[10, 50, 100].map((amt) => (
+                  <button
+                    key={amt}
+                    onClick={() =>
+                      setPaymentform({ ...paymentform, amount: amt.toString() })
+                    }
+                    className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/50 hover:bg-indigo-500/10 transition-all font-bold text-slate-300"
+                  >
+                    Rs. {amt}
+                  </button>
+                ))}
+              </div>
 
-              <button
-                onClick={() => pay(Number.parseInt(paymentform.amount) * 100)}
-                type="button"
-                className="text-white bg-gradient-to-br from-purple-900 to-blue-900 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 disabled:bg-slate-600 disabled:from-purple-100"
-                disabled={
-                  paymentform.name?.length < 3 ||
-                  paymentform.message?.length < 4 ||
-                  paymentform.amount?.length < 1
-                }
-              >
-                Pay
-              </button>
-            </div>
-            {/* Or choose from these amounts  */}
-            <div className="flex flex-col md:flex-row gap-2 mt-5">
-              <button
-                className="bg-slate-800 p-3 rounded-lg"
-                onClick={() => pay(1000)}
-              >
-                Pay Rs. 10
-              </button>
-              <button
-                className="bg-slate-800 p-3 rounded-lg"
-                onClick={() => pay(2000)}
-              >
-                Pay Rs. 20
-              </button>
-              <button
-                className="bg-slate-800 p-3 rounded-lg"
-                onClick={() => pay(3000)}
-              >
-                Pay Rs. 30
-              </button>
+              <div className="pt-4 space-y-3">
+                <button
+                  onClick={() => pay(Number.parseInt(paymentform.amount) * 100)}
+                  className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 disabled:opacity-50 text-white font-bold text-lg shadow-lg shadow-indigo-600/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  disabled={
+                    !paymentform.name ||
+                    !paymentform.message ||
+                    !paymentform.amount
+                  }
+                >
+                  <span>🚀</span> Support with Razorpay
+                </button>
+
+                <div className="text-center text-xs text-slate-500 font-medium uppercase tracking-widest py-2">
+                  OR
+                </div>
+
+                <button
+                  onClick={() =>
+                    payWithEsewa(Number.parseInt(paymentform.amount))
+                  }
+                  className="w-full py-4 rounded-2xl bg-[#60bb46] hover:bg-[#4fa238] disabled:bg-slate-700 disabled:opacity-50 text-white font-bold text-lg shadow-lg shadow-green-600/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  disabled={
+                    esewaLoading ||
+                    !paymentform.name ||
+                    !paymentform.message ||
+                    !paymentform.amount
+                  }
+                >
+                  <span>🇳🇵</span>{" "}
+                  {esewaLoading
+                    ? "Connecting to eSewa..."
+                    : "Support with eSewa"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

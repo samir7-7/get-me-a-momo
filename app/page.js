@@ -4,25 +4,26 @@ import Link from "next/link";
 export default function Home() {
   return (
     <>
-      <div className="flex justify-center flex-col gap-4 items-center text-white h-[44vh] px-5 md:px-0 text-xs md:text-base  ">
-        <div className="font-bold flex gap-6 md:gap-20 md:text-5xl justify-center items-center text-3xl">
-          Get Me A Momo{" "}
+      <div className="flex justify-center flex-col gap-6 items-center text-white min-h-[60vh] px-5 md:px-0 text-center">
+        <div className="font-bold flex flex-col md:flex-row gap-4 md:text-7xl justify-center items-center text-4xl mt-16">
+          <span>Get Me A Momo</span>
           <span>
-            <img className="invertImg" src="/momo.gif" width={88} alt="" />
+            <img
+              className="invertImg w-16 md:w-24"
+              src="/momo.gif"
+              alt="momo"
+            />
           </span>
         </div>
-        <p className="text-center md:text-left">
-          A crowdfunding platform for creators to fund their projects.
+        <p className="text-lg md:text-2xl text-slate-300 max-w-2xl px-4">
+          A crowdfunding platform for creators to fund their dreams. Fans can
+          buy you a momo to support your work!
         </p>
-        <p className="text-center md:text-left">
-          A place where your fans can buy you a momo. Unleash the power of your
-          fans and get your projects funded.
-        </p>
-        <div>
+        <div className="flex gap-4 mt-4">
           <Link href={"/login"}>
             <button
               type="button"
-              className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+              className="text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-bold rounded-xl text-lg px-8 py-4 text-center transition-all transform hover:scale-105"
             >
               Start Here
             </button>
@@ -31,59 +32,63 @@ export default function Home() {
           <Link href="/about">
             <button
               type="button"
-              className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+              className="text-white glass hover:bg-white/10 focus:ring-4 focus:outline-none focus:ring-slate-300 font-bold rounded-xl text-lg px-8 py-4 text-center transition-all"
             >
               Read More
             </button>
           </Link>
         </div>
       </div>
-      <div className="bg-white h-1 opacity-10"></div>
 
-      <div className="text-white container mx-auto pb-32 pt-14 px-10">
-        <h2 className="text-3xl font-bold text-center mb-14">
-          Your Fans can buy you a Momo
+      <div className="h-[1px] bg-gradient-to-r from-transparent via-slate-500 to-transparent opacity-20 my-10"></div>
+
+      <div className="text-white container mx-auto py-20 px-6">
+        <h2 className="text-4xl font-bold text-center mb-16">
+          Why "Get Me A Momo"?
         </h2>
-        <div className="flex gap-5 justify-around">
-          <div className="item space-y-3 flex flex-col items-center justify-center">
-            <img
-              className="bg-slate-400 rounded-full p-2 text-black"
-              width={88}
-              src="/man.gif"
-              alt=""
-            />
-            <p className="font-bold text-center">Fans want to help</p>
-            <p className="text-center">
-              Your fans are available to support you
+        <div className="grid md:grid-cols-3 gap-12">
+          <div className="item space-y-4 flex flex-col items-center glass p-8 rounded-3xl transition-transform hover:-translate-y-2">
+            <div className="bg-indigo-500/20 p-4 rounded-full">
+              <img
+                className="invertImg w-16 h-16"
+                src="/man.gif"
+                alt="fans help"
+              />
+            </div>
+            <p className="font-bold text-2xl">Fans want to help</p>
+            <p className="text-slate-400 text-center">
+              Your community is ready to back your vision.
             </p>
           </div>
-          <div className="item space-y-3 flex flex-col items-center justify-center">
-            <img
-              className="bg-slate-400 rounded-full p-2 text-black"
-              width={88}
-              src="/coin.gif"
-              alt=""
-            />
-            <p className="font-bold text-center">Fans want to contribute</p>
-            <p className="text-center">
-              Your fans are willing to contribute financially
+          <div className="item space-y-4 flex flex-col items-center glass p-8 rounded-3xl transition-transform hover:-translate-y-2">
+            <div className="bg-purple-500/20 p-4 rounded-full">
+              <img
+                className="invertImg w-16 h-16"
+                src="/coin.gif"
+                alt="contribute"
+              />
+            </div>
+            <p className="font-bold text-2xl">Easy Support</p>
+            <p className="text-slate-400 text-center">
+              Receive micro-donations directly from your supporters.
             </p>
           </div>
-          <div className="item space-y-3 flex flex-col items-center justify-center">
-            <img
-              className="bg-slate-400 rounded-full p-2 text-black"
-              width={88}
-              src="/group.gif"
-              alt=""
-            />
-            <p className="font-bold text-center">Fans want to collaborate</p>
-            <p className="text-center">
-              Your fans are ready to collaborate with you
+          <div className="item space-y-4 flex flex-col items-center glass p-8 rounded-3xl transition-transform hover:-translate-y-2">
+            <div className="bg-pink-500/20 p-4 rounded-full">
+              <img
+                className="invertImg w-16 h-16"
+                src="/group.gif"
+                alt="collaborate"
+              />
+            </div>
+            <p className="font-bold text-2xl">Build Community</p>
+            <p className="text-slate-400 text-center">
+              Create a lasting bond with your most loyal fans.
             </p>
           </div>
         </div>
       </div>
-      <div className="bg-white h-1 opacity-10"></div>
+      <div className="h-[1px] bg-gradient-to-r from-transparent via-slate-500 to-transparent opacity-20 my-10"></div>
 
       <div className="text-white container mx-auto pb-32 pt-14 flex flex-col items-center justify-center">
         <h2 className="text-3xl font-bold text-center mb-14">

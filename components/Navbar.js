@@ -8,26 +8,22 @@ const Navbar = () => {
   const [showdropdown, setShowdropdown] = useState(false);
 
   return (
-    <nav className="bg-gray-900 shadow-xl shadow-white text-white flex justify-between items-center px-4 md:h-16">
+    <nav className="glass text-white flex justify-between items-center px-6 h-16 sticky top-0 z-50 transition-all">
       <Link
-        className="logo font-bold text-lg flex justify-center items-center"
+        className="logo font-bold text-2xl flex justify-center items-center gap-3 transition-transform hover:scale-105"
         href={"/"}
       >
-        <img className="invertImg" src="/momo.gif" width={44} alt="" />
-        <span className="text-xl md:text-base my-3 md:my-0">
-          Get Me A Momo!
+        <img className="invertImg w-10 md:w-12" src="/momo.gif" alt="momo" />
+        <span className="hidden md:inline tracking-tight">
+          Get Me A{" "}
+          <span className="text-indigo-400 font-extrabold uppercase tracking-widest">
+            Momo
+          </span>
+          !
         </span>
       </Link>
 
-      {/* <ul className='flex justify-between gap-4'>
-        <li>Home</li>
-        <li>About</li>
-        <li>Projects</li>
-        <li>Sign Up</li>
-        <li>Login</li>
-      </ul> */}
-
-      <div className="relative flex justify-center items-center  md:block gap-4">
+      <div className="relative flex justify-center items-center gap-4">
         {session && (
           <>
             <button
