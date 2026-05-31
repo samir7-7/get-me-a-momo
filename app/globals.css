@@ -2,21 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-::-webkit-scrollbar {
-    width: 10px;
-    height: 12px; /* For horizontal scrollbar */
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1); /* Dark transparent background */
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: rgba(92, 92, 92, 0.749); /* Darker transparent thumb */
-    border-radius: 0; /* Box-shaped */
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.8); /* Darker on hover */
-  }
+.invertImg{
+    filter: invert(0.23)
+}
